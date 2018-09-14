@@ -3,16 +3,39 @@
 const express = require('express')
 const Planner = require('./lib/planner')
 const datatransformers = require('./lib/datatransformers')
+const mcache = require('memory-cache')
 
 const router = express.Router()
 
-// define the home page route
-router.get('/', async (req, res, next) => {
+var cache = (duration) => {
+  return (req, res, next) => {
+    const refresh = req.query.refresh !== undefined
+    const key = '__express__' + req.originalUrl || req.url
+    let cachedBody = mcache.get(key)
+    if (cachedBody && !refresh) {
+      res.send(cachedBody)
+      return
+    } else {
+      res.sendResponse = res.send
+      res.send = (body) => {
+        mcache.put(key, body, duration * 1000);
+        res.sendResponse(body)
+      }
+      next()
+    }
+  }
+}
+
+// define the home page route and cache it for 1 hour
+router.get('/', cache(3600), async (req, res, next) => {
   try {
 
-    const data = await iterations('e8864cfe-f65a-4351-85a4-3a585d801b45', ['Story'])
+    let itemTypes=req.query.items || ['Story']
+    itemTypes = Array.isArray(itemTypes) ? itemTypes : [itemTypes]
+    let columns = req.query.columns || ['name', 'total', 'wis', 'woSPs', 'woACs', 'spCom',  'spTotal']
+    columns = Array.isArray(columns) ? columns : [columns]
 
-    console.log(JSON.stringify(data, null, 2))
+    const data = await iterations('e8864cfe-f65a-4351-85a4-3a585d801b45', itemTypes, columns)
 
     res.render('index', Object.assign(data, {
       partials: {
@@ -25,13 +48,13 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-const iterations = async (space, includeItemTypes) => {
+const iterations = async (space, includeItemTypes, columns) => {
 
   const planner = new Planner()
   
-  const columns = datatransformers.all//.filter(dt => {
-    //return true//argv.columns.includes(dt.id)
-  //})
+  columns = datatransformers.all.filter(dt => {
+    return columns.includes(dt.id)
+  })
 
   let iterations = await planner.iterationsWithDetails(space, includeItemTypes)
 
@@ -52,12 +75,7 @@ const iterations = async (space, includeItemTypes) => {
     return data
   }
 
-  const metadata = ' '
-  /*
-  Object.keys(argv).filter(k => k!=='_' && k!=='$0').map(k => {
-    const value = argv[k]
-    return `--${k} ${Array.isArray(value) ? (value.length ? value.join(' ') : '[]') : value}`
-  }).join(' ')*/
+  const metadata = `Columns: ${columns.map(c=>c.id).join(',')}, Items: ${includeItemTypes.join(',')}`
   const data = iterationsHelper(iterations, columns)
   const date = new Date(Date.now()).toUTCString()
 
@@ -70,20 +88,5 @@ const iterations = async (space, includeItemTypes) => {
     title: 'OpenShift.io Iterations Statistics' 
   }
 }
-
-
-/*
-get('/', (req, res) => {
-
-  const argv = {
-    '_': 'iterations',
-    'columns': ['name', 'total', 'wis', 'woSPs', 'woACs', 'spCom', 'spTotal'],
-    'space': 'e8864cfe-f65a-4351-85a4-3a585d801b45',
-    'include-item-types': []
-  }
-
-  
-})
-*/
 
 module.exports = router

@@ -29,7 +29,7 @@
   </ul>
   <h2>Metadata</h2>
   <p>
-    Generated on {{date}} via <a href="https://github.com/kpiwko/osio-stats">openshift.io stats</a>.
+    Generated on {{date}} and cached for up to 1 hour.<a href="?refresh"><b>Force refresh</b></a>.
   </p>
   <p>
     Arguments: <code>{{metadata}}</code>
