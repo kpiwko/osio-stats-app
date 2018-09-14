@@ -2,8 +2,6 @@
 const express = require('express')
 const morgan  = require('morgan')
 const mcache = require('memory-cache')
-const osioStats = require('osio-stats')
-const path = require('path')
 const cons = require('consolidate')
 
 const app = express()
