@@ -10,7 +10,7 @@ const router = express.Router()
 router.get('/', async (req, res, next) => {
   try {
 
-    const data = await iterations('e8864cfe-f65a-4351-85a4-3a585d801b45', [])
+    const data = await iterations('e8864cfe-f65a-4351-85a4-3a585d801b45', ['Story'])
 
     console.log(JSON.stringify(data, null, 2))
 
