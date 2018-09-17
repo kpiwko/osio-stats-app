@@ -25,6 +25,10 @@ class DataTransformer {
     throw new Error('This is an abstract method that needs to be implemented')
   }
 
+  aggregate(value, iteration) {
+    return null
+  }
+
   isSimple() {
     return typeof this.reduce === 'function' && this.reduce.length <= 2
   }
@@ -78,7 +82,7 @@ class IterationName extends DataTransformer {
 
 class IterationTotalWorkItems extends DataTransformer {
   constructor() {
-    super('total', '# Total WIs', 'Number of total workitems in iteration (including children and all workitem types)')
+    super('total', '# Total WIs (including child iterations)', 'Number of total workitems in iteration (including children and all workitem types)')
   }
 
   reduce(acc, iteration) {
@@ -89,7 +93,7 @@ class IterationTotalWorkItems extends DataTransformer {
 
 class IterationWorkItems extends DataTransformer {
   constructor() {
-    super('wis', '# WIs', 'Number of workitems in iteration (direct items only and filtered by work item type)')
+    super('wis', '# WIs in iteration of given type(s)', 'Number of workitems in iteration (direct items only and filtered by work item type)')
   }
 
   reduce(acc, iteration, workitems) {
@@ -101,45 +105,59 @@ class IterationWorkItems extends DataTransformer {
   }
 }
 
-class IterationMissingStoryPoints extends DataTransformer {
+class IterationStoryPoints extends DataTransformer {
   constructor() {
-    super('woSPs', '# WIs w/o SPs', 'Number of workitems in iteration without story points')
+    super('withSPs', '# WIs with Story points', 'Number of workitems of given type(s) in iteration with story points')
   }
 
   reduce(acc, iteration, workitems) {
-    acc.woSPs = 0
+    acc.withSPs = 0
     return workitems.reduce((innerAcc, wi) => {
       wi = flat.flatten(wi)
       const sp = wi['attributes.storypoints']
       if(sp) {
-        innerAcc.woSPs++
+        innerAcc.withSPs++
       }
       return innerAcc
     }, acc)
+  }
+
+  aggregate(iteration) {
+    if(!iteration[new IterationWorkItems().id]) {
+      return '0%'
+    }
+    return `${Math.round((iteration[this.id] * 1.0 / iteration[new IterationWorkItems().id])*100).toFixed(0)}%`
   }
 }
 
-class IterationMissingAcceptanceCriteria extends DataTransformer {
+class IterationAcceptanceCriteria extends DataTransformer {
   constructor() {
-    super('woACs', '# WIs w/o ACs', 'Number of workitems in iteration without acceptance criteria')
+    super('withACs', '# WIs with Acceptance Criteria', 'Number of workitems of given type(s) in iteration with acceptance criteria')
   }
 
   reduce(acc, iteration, workitems) {
-    acc.woACs = 0
+    acc.withACs = 0
     return workitems.reduce((innerAcc, wi) => {
       wi = flat.flatten(wi)
       const description = wi['attributes.system.description']
-      if(!description || !AC_REGEX.test(description)) {
-        innerAcc.woACs++
+      if(description && AC_REGEX.test(description)) {
+        innerAcc.withACs++
       }
       return innerAcc
     }, acc)
+  }
+
+  aggregate(iteration) {
+    if(!iteration[new IterationWorkItems().id]) {
+      return '0%'
+    }
+    return `${Math.round((iteration[this.id] * 1.0 / iteration[new IterationWorkItems().id])*100).toFixed(0)}%`
   }
 }
 
 class IterationCompleteStoryPoints extends DataTransformer {
   constructor() {
-    super('spCom', 'SPs completed', 'Total story points completed in the iteration')
+    super('spCom', 'Story Points completed', 'Total story points completed (marked as Closed) in the iteration')
   }
 
   reduce(acc, iteration, workitems) {
@@ -153,11 +171,18 @@ class IterationCompleteStoryPoints extends DataTransformer {
       return innerAcc
     }, acc)
   }
+
+  aggregate(iteration) {
+    if(!iteration[new IterationTotalStoryPoints().id]) {
+      return '0%'
+    }
+    return `${Math.round((iteration[this.id] * 1.0 / iteration[new IterationTotalStoryPoints().id])*100).toFixed(0)}%`
+  }
 }
 
 class IterationTotalStoryPoints extends DataTransformer {
   constructor() {
-    super('spTot', 'SPs total', 'Total story points estimated in the iteration')
+    super('spTot', 'Story Points Total', 'Total story points estimated in the iteration')
   }
 
   reduce(acc, iteration, workitems) {
@@ -176,7 +201,7 @@ class IterationTotalStoryPoints extends DataTransformer {
 const all = [
   new IterationId(), new IterationParentId(), new IterationName(), 
   new IterationTotalWorkItems(), new IterationWorkItems(), 
-  new IterationMissingStoryPoints(), new IterationMissingAcceptanceCriteria(),
+  new IterationStoryPoints(), new IterationAcceptanceCriteria(),
   new IterationCompleteStoryPoints(), new IterationTotalStoryPoints()
 ]
 

@@ -32,7 +32,7 @@ router.get('/', cache(3600), async (req, res, next) => {
 
     let itemTypes=req.query.items || ['Story']
     itemTypes = Array.isArray(itemTypes) ? itemTypes : [itemTypes]
-    let columns = req.query.columns || ['name', 'total', 'wis', 'woSPs', 'woACs', 'spCom',  'spTotal']
+    let columns = req.query.columns || ['name', 'total', 'wis', 'withSPs', 'withACs', 'spCom',  'spTot']
     columns = Array.isArray(columns) ? columns : [columns]
 
     const data = await iterations('e8864cfe-f65a-4351-85a4-3a585d801b45', itemTypes, columns)
@@ -67,15 +67,19 @@ const iterations = async (space, includeItemTypes, columns) => {
     const data = []
     iterations.forEach(iteration => {
       const entry = columns.reduce((acc, column) => {
-        acc.push(iteration[column.id])
+        acc.push({
+          key: column.id,
+          value: iteration[column.id],
+          aggregatedValue: column.aggregate(iteration)
+        })
         return acc
       }, [])
-      data.push(`<td>${entry.join('</td><td>')}</td>`)
+      data.push({stats: entry})
     })
     return data
   }
 
-  const metadata = `Columns: ${columns.map(c=>c.id).join(',')}, Items: ${includeItemTypes.join(',')}`
+  const metadata = `Columns: ${columns.map(c=>c.id).join(',')}, Items types: ${includeItemTypes.join(',')}`
   const data = iterationsHelper(iterations, columns)
   const date = new Date(Date.now()).toUTCString()
 

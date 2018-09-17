@@ -1,17 +1,26 @@
 <div class="container">
   <h1>OpenShift.io Iterations Statistics</h1>
   <table class="table table-striped table-hover table-bordered">
-    <thead>
+    <thead class="thead-light">
       <tr>
         {{#columns}}
-          <td>{{title}}</td>
+          <td class="align-middle text-center font-weight-bold">{{title}}</td>
         {{/columns}}
       </tr>
     </thead>
     <tbody>
       {{#data}}
         <tr>
-          {{{.}}}
+          {{#stats}}
+            <td>
+              <div class="d-flex flex-row justify-content-start mb-3">
+                <div class="p2">{{value}}</div>
+                {{#aggregatedValue}}
+                  <div class="p2 ml-auto"><b>({{.}})</b></div>
+                {{/aggregatedValue}}
+              </div>
+            </td>
+          {{/stats}}
         </tr>
       {{/data}}
     </tbody>
@@ -23,7 +32,7 @@
   <ul>
     {{#dts}}
       <li>
-        <b>{{title}}</b> -- {{description}}
+        id: <code>{{id}}</code>&nbsp;-&nbsp;<b>{{title}}</b> -- {{description}}
       </li>
     {{/dts}}
   </ul>
