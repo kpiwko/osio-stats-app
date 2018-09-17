@@ -13,11 +13,16 @@
         <tr>
           {{#stats}}
             <td>
-              <div class="d-flex flex-row justify-content-start mb-3">
+              <div class="d-flex flex-row justify-content-start mb-3 text-center">
                 <div class="p2">{{value}}</div>
                 {{#aggregatedValue}}
                   <div class="p2 ml-auto"><b>({{.}})</b></div>
                 {{/aggregatedValue}}
+                {{#link}}
+                  <div class="p2">
+                    <a href="{{.}}" target="_blank" class="btn btn-primary">Planner query</a>
+                  </div>
+                {{/link}}
               </div>
             </td>
           {{/stats}}

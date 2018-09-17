@@ -70,7 +70,8 @@ const iterations = async (space, includeItemTypes, columns) => {
         acc.push({
           key: column.id,
           value: iteration[column.id],
-          aggregatedValue: column.aggregate(iteration)
+          aggregatedValue: column.aggregate(iteration),
+          link: column.link(space, iteration, includeItemTypes)
         })
         return acc
       }, [])

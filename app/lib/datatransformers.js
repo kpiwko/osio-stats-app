@@ -25,7 +25,11 @@ class DataTransformer {
     throw new Error('This is an abstract method that needs to be implemented')
   }
 
-  aggregate(value, iteration) {
+  aggregate(iteration) {
+    return null
+  }
+
+  link(space, iteration, itemTypes) {
     return null
   }
 
@@ -102,6 +106,13 @@ class IterationWorkItems extends DataTransformer {
       innerAcc.wis++
       return innerAcc
     }, acc)
+  }
+
+  link(space, iteration, itemTypes) {
+    const iterationId = iteration[new IterationId().id]
+    // FIXME include space and itemType to the query
+    const query=`(typegroup.name:Execution%20$AND%20iteration:${iterationId}%20$AND%20workitemtype:6ff83406-caa7-47a9-9200-4ca796be11bb)&showTree=false&showCompleted=true` 
+    return `https://openshift.io/openshiftio/Openshift_io/plan?q=${query}`
   }
 }
 
