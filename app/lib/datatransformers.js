@@ -111,7 +111,7 @@ class IterationWorkItems extends DataTransformer {
   link(space, iteration, itemTypes) {
     const iterationId = iteration[new IterationId().id]
     // FIXME include space and itemType to the query
-    const query=`(typegroup.name:Execution%20$AND%20iteration:${iterationId}%20$AND%20workitemtype:6ff83406-caa7-47a9-9200-4ca796be11bb)&showTree=false&showCompleted=true` 
+    const query=`(typegroup.name:Execution%20$AND%20iteration:${iterationId}%20$AND%20workitemtype:6ff83406-caa7-47a9-9200-4ca796be11bb)&showCompleted=true` 
     return `https://openshift.io/openshiftio/Openshift_io/plan?q=${query}`
   }
 }
